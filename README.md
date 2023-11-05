@@ -1,2 +1,3 @@
-# gfg_movie_app-student-version
-Movie App
+Movie-App
+Lists the top 250 movies on IMDB.
+Search and Filters are provided.
