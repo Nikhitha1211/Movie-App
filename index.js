@@ -6,26 +6,28 @@ const movieGenres = document.querySelector("#genre-select");
 let searchValue = "";
 let ratings = 0;
 let genre = "";
-let filteredArrOfMovies = [];
+let ratingsResults = "";
+let searchResults = "";
+let genreResults = "";
+let ratingsURL, genreURL, searchURL, mainURL;
 
-const URL = "https://movies-app.prakashsakari.repl.co/api/movies";
-
-const getMovies = async (url) => {
+const getData = async (url) => {
   try {
     const { data } = await axios.get(url);
     return data;
   } catch (err) { }
 };
+const baseURL = "http://localhost:3000/api/movies/filteredData?";
+const URL = "http://localhost:3000/api/movies";
+const genresURL = "http://localhost:3000/api/movies/genres";
 
-let movies = await getMovies(URL);
-console.log(movies);
+let movies = await getData(URL);
 
 const createElement = (element) => document.createElement(element);
 
 // function to create movie cards
-
 const createMovieCard = (movies) => {
-  console.log(movies.length)
+  console.log(movies)
   if (movies.length > 0) {
     for (let movie of movies) {
       // creating parent container
@@ -111,19 +113,9 @@ const createMovieCard = (movies) => {
 
 };
 
+let genres = await getData(genresURL);
 
-const genres = movies.reduce((acc, cur) => {
-  let genresArr = [];
-  let tempGenresArr = cur.genre.split(",");
-  acc = [...acc, ...tempGenresArr];
-  for (let genre of acc) {
-    if (!genresArr.includes(genre)) {
-      genresArr = [...genresArr, genre];
-    }
-  }
-  return genresArr;
-}, []);
-
+//create genre dropdown
 for (let genre of genres) {
   const option = createElement("option");
   option.classList.add("option");
@@ -132,60 +124,40 @@ for (let genre of genres) {
   movieGenres.appendChild(option);
 }
 
-function getFilteredData() {
-  filteredArrOfMovies =
-    searchValue?.length > 0
-      ? movies.filter(
-        (movie) =>
-          searchValue === movie.name.toLowerCase() ||
-          searchValue === movie.director_name.toLowerCase() ||
-          movie.writter_name.toLowerCase().split(",").includes(searchValue) ||
-          movie.cast_name.toLowerCase().split(",").includes(searchValue)
-      )
-      : movies;
+function constructURL(baseURL, searchValue, ratings, genre) {
+  let url = baseURL + (searchValue === "" ? "" : `s=${encodeURIComponent(searchValue)}`);
   if (ratings > 0) {
-    // filteredArrOfMovies =
-    //   searchValue?.length > 0 ? filteredArrOfMovies : movies;
-    filteredArrOfMovies = filteredArrOfMovies.filter(
-      (movie) => movie.imdb_rating >= ratings
-    );
+    url += `&i=${encodeURIComponent(ratings)}`;
   }
-
-  if (genre?.length > 0) {
-    // filteredArrOfMovies =
-    //   searchValue?.length > 0 || ratings > 7 ? filteredArrOfMovies : movies;
-    filteredArrOfMovies = filteredArrOfMovies.filter((movie) =>
-      movie.genre.includes(genre)
-    );
+  if (genre !== "") {
+    url += `&g=${genre}`;
   }
-  return filteredArrOfMovies;
+  return url;
 }
 
-function handleSearch(event) {
+async function handleSearch(event) {
   searchValue = event.target.value.toLowerCase();
-  console.log(searchValue);
-  let filterBySearch = getFilteredData();
+  mainURL = constructURL(baseURL, searchValue, ratings, genre);
+  searchResults = await getData(mainURL);
   parentElement.innerHTML = "";
-  createMovieCard(filterBySearch);
+  createMovieCard(searchResults);
 }
 
-
-
-function handleRatingSelector(event) {
+async function handleRatingSelector(event) {
   ratings = event.target.value;
-  let filterByRating = getFilteredData();
+  mainURL = constructURL(baseURL, searchValue, ratings, genre);
+  ratingsResults = await getData(mainURL);
   parentElement.innerHTML = "";
-  createMovieCard(ratings ? filterByRating : movies);
+  createMovieCard(ratings ? ratingsResults : movies);
 }
 
-
-function handleGenreSelect(event) {
+async function handleGenreSelect(event) {
   genre = event.target.value;
-  const filteredMoviesByGenre = getFilteredData();
+  mainURL = constructURL(baseURL, searchValue, ratings, genre);
+  genreResults = await getData(mainURL);
   parentElement.innerHTML = "";
-  createMovieCard(genre ? filteredMoviesByGenre : movies);
+  createMovieCard(genre ? genreResults : movies);
 }
-
 
 function debounce(callback, delay) {
   let timerId;
