@@ -1,4 +1,7 @@
 **#Movie-App**  
-Lists the top 250 movies on IMDB.  
+Lists the top 250 movies of IMDB sourced through API.  
 Search and Filters like Rating, Genre are included.  
-View the webiste at [Movie-App](https://nikhitha1211.github.io/Movie-App/)
+
+**#Run project locally**  
+Run the server file  
+Launch html file in the browser 
